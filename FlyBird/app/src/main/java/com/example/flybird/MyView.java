@@ -33,7 +33,7 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback,Runnab
     //游戏状态
     public static int GameState=GameProperty.GAME_START;
     public static int score=0;
-
+    public boolean runfalg=false;
     public MyView(Context context) {
         super(context);
          holder = getHolder();
@@ -67,6 +67,7 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback,Runnab
         // 启动当前对象的线程
         flag = true;
         th.start();
+        score=0;
     }
 
     private void initPipe() {
@@ -140,13 +141,17 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback,Runnab
     }
 
     private void logic() {
-        // 处理小鸟的逻辑
-        bird.logic();
-        // 处理所有水管的逻辑
-        for (int i = 0; i < pipes.size(); i++) {
-            Pipe pipe = pipes.elementAt(i);
-            pipe.logic();
+        if(runfalg){
+            // 处理小鸟的逻辑
+            bird.logic();
+            // 处理所有水管的逻辑
+            for (int i = 0; i < pipes.size(); i++) {
+                Pipe pipe = pipes.elementAt(i);
+                pipe.logic();
+            }
         }
+
+
         // 处理碰撞检测的逻辑
         logicCollision();
         // 判断游戏是否结束
@@ -160,6 +165,11 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback,Runnab
             canvas = holder.lockCanvas();
             // 在画布上绘制背景图
             canvas.drawBitmap(bg, null, bgRect, paint);
+
+            //绘制开始游戏
+            if (!runfalg) {
+                canvas.drawText("点击开始游戏",getWidth() / 2 - 200, getHeight() / 2 + 100, paint);
+            }
             // 根据当前状态不同，绘制不同的游戏元素
             switch (GameState) {
                 case GameProperty.GAME_START:
@@ -176,6 +186,7 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback,Runnab
                 case GameProperty.GAME_LOSE:
                     // 绘制游戏结束信息
                     canvas.drawText("游戏失败", getWidth() / 2 - 200, getHeight() / 2 + 100, paint);
+                    canvas.drawText("点击重来", getWidth() / 2 - 200, getHeight() / 2 + 220, paint);
                     // 绘制指定图片
                     Drawable icon = getResources().getDrawable(R.drawable.my_icon);
                     icon.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -201,9 +212,18 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback,Runnab
     @Override
     public boolean onTouchEvent(MotionEvent event){
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if(!runfalg){
+                runfalg=true;
+            }
             // 小鸟上升
             bird.ToUp();
         }
+        if (GameState==GameProperty.GAME_LOSE){
+            GameState=GameProperty.GAME_START;
+            initGame();
+            runfalg=false;
+        }
+
         return true;
     }
 
